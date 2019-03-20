@@ -464,7 +464,10 @@ public class MainWindow extends javax.swing.JFrame {
             txtPort.setEnabled(true);
             btnConnect.setEnabled(true);
             btnDisconnect.setEnabled(false);
-
+            
+            
+            
+            //Das Standardmodell für Kombinationsfelder setzen
             cbxTables.setModel(new DefaultComboBoxModel<String>());
             cbxTables.setEnabled(false);
 
@@ -564,7 +567,8 @@ public class MainWindow extends javax.swing.JFrame {
         String countryName= txtCtrInsert.getText(); 
         String population= txtPopIns.getText(); 
         
-        String insertBefehl = "INSERT INTO CITY (Name, population) VALUES(countryName, population)" ;  
+        String insertBefehl = "INSERT INTO CITY (Name, population) VALUES("
+                + "countryName, population)" ;  
             try { 
                 
                 PreparedStatement prpsmt = con.prepareStatement(insertBefehl) ;
