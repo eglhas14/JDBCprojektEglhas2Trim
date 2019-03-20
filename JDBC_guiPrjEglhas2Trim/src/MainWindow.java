@@ -411,6 +411,7 @@ public class MainWindow extends javax.swing.JFrame {
             cbxTables.setEnabled(true);
             
             
+            
         // Exception ausloesen wenn die Verbindung mit der Datenbank fehlschlägt.
         } catch (SQLException ex) {
             System.out.println("Could not connect to world database!");
