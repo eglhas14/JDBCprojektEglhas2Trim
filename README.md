@@ -1,0 +1,1 @@
+# JDBCprojektEglhas2Trim
