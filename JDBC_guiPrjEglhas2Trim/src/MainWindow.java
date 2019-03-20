@@ -225,11 +225,16 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        ctrNameIns.setText("Country");
+        ctrNameIns.setText("Name");
 
-        txtCtrInsert.setText("ex.: Albania");
+        txtCtrInsert.setText("Shkoder");
+        txtCtrInsert.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtCtrInsertActionPerformed(evt);
+            }
+        });
 
-        txtPopIns.setText("ex.: 2800000");
+        txtPopIns.setText("2800000");
 
         popIns.setText("Population");
 
@@ -518,6 +523,7 @@ public class MainWindow extends javax.swing.JFrame {
                 
                 
             }
+            //  Das Modell auf den Table setzen.
             tblEntries.setModel(tableModel);
 
         } catch (SQLException ex) {
@@ -530,20 +536,31 @@ public class MainWindow extends javax.swing.JFrame {
         // Neue Statement erzeugen
         Statement stmt;
         try {
+            
+            // mit der Datenbank verbinden
             stmt = con.createStatement();
+            
+            // Selektierte Daten in ResultSet speichern. 
             ResultSet res = stmt.executeQuery("SELECT * FROM " + cbxTables.getSelectedItem().toString());
-
+            //Schleife zahlt durch solange es spalten gibt. 
             while (res.next()) {
+                
+                // Array Object erzeugen, also die Tabelle mit den Daten einfüllen
                 Object[] row = new Object[num_columns];
                 for (int i = 1; i <= num_columns; i++) {
                     row[i - 1] = res.getObject(i);
                 }
                 ((DefaultTableModel) tblEntries.getModel()).insertRow(res.getRow() - 1, row);
             }
-
+            
+            
+            
+            
             tblEntries.getModel().addTableModelListener(new TableModelListener() {
                 @Override
                 public void tableChanged(TableModelEvent e) {
+                    
+                    //Wenn eine Änderung gescheht, "Table Changed" auf den Bildschirm zeigen. 
                     System.out.println("table changed");
                 }
             });
@@ -585,14 +602,16 @@ public class MainWindow extends javax.swing.JFrame {
          
         try{
             
-            
+        //Connection aufbauen  
         String user = txtUser.getText();
         String password = txtPassword.getText();
         String database = txtDatabase.getText();
         String server = txtServer.getText();
         int port = 0;
       
-       con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+        con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+        
+        //User Input fuer countryName und 
         String countryName= txtCtrInsert.getText(); 
         String population= txtPopIns.getText(); 
         
@@ -628,7 +647,10 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
         
-        
+     
+        try{
+            
+        //Connection aufbauen
         String user = txtUser.getText();
         String password = txtPassword.getText();
         String database = txtDatabase.getText();
@@ -636,19 +658,19 @@ public class MainWindow extends javax.swing.JFrame {
         
         int port = 0;
         
-        try{
-        
-        
+         con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+        // SQL Befehl fuers Löschen in einer Variable speichern und in Statement führen.
         String sql = "DELETE FROM city WHERE ID =?";
-        con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+       
         pst = con.prepareStatement(sql);
+        // Den Statement der Input Id als parameter geben. 
         pst.setString(1,txtIDtodel.getText());
         pst.executeUpdate();
-        System.out.println("Loschen von Datensatz erfolgreich");
+        System.out.println("Löschen von Datensatz erfolgreich");
 
         }
         catch(SQLException ex){
-        JOptionPane.showMessageDialog(null, ex);
+            System.out.println("Löschen von Datensatz funktioniert leider nicht :( ");
 }
         
             
@@ -713,6 +735,10 @@ public class MainWindow extends javax.swing.JFrame {
     private void txtUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUserActionPerformed
+
+    private void txtCtrInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCtrInsertActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtCtrInsertActionPerformed
 
     /**
      * @param args the command line arguments

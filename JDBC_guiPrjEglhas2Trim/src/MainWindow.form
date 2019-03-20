@@ -308,17 +308,20 @@
     </Component>
     <Component class="javax.swing.JLabel" name="ctrNameIns">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Country"/>
+        <Property name="text" type="java.lang.String" value="Name"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtCtrInsert">
       <Properties>
-        <Property name="text" type="java.lang.String" value="ex.: Albania"/>
+        <Property name="text" type="java.lang.String" value="Shkoder"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtCtrInsertActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtPopIns">
       <Properties>
-        <Property name="text" type="java.lang.String" value="ex.: 2800000"/>
+        <Property name="text" type="java.lang.String" value="2800000"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="popIns">
