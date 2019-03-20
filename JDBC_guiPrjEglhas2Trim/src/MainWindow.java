@@ -1,4 +1,6 @@
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -10,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
@@ -31,6 +34,10 @@ public class MainWindow extends javax.swing.JFrame {
        //Variablen für die DatenBank Verbindung erstellen
         private Connection con = null; 
         DatabaseMetaData md = null;
+        
+        
+        PreparedStatement pst = null;
+        ResultSet rs = null;
 
     /**
      * Creates new form MainWindow
@@ -100,8 +107,6 @@ public class MainWindow extends javax.swing.JFrame {
         txtCtrInsert = new javax.swing.JTextField();
         txtPopIns = new javax.swing.JTextField();
         popIns = new javax.swing.JLabel();
-        ctrNameDel = new javax.swing.JLabel();
-        txtCtrDel = new javax.swing.JTextField();
 
         jLabel1.setText("jLabel1");
 
@@ -226,10 +231,6 @@ public class MainWindow extends javax.swing.JFrame {
 
         popIns.setText("Population");
 
-        ctrNameDel.setText("Country");
-
-        txtCtrDel.setText("ex.: Albania");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -239,25 +240,20 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(ctrNameDel)
+                                .addComponent(ctrNameIns, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtCtrDel))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txtCtrInsert, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addGroup(layout.createSequentialGroup()
-                                    .addComponent(ctrNameIns, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txtCtrInsert, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lblServer)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(txtServer, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lblPort)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(txtPort)))))
+                                    .addComponent(lblServer)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(txtServer, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(lblPort)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(txtPort))))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -319,10 +315,7 @@ public class MainWindow extends javax.swing.JFrame {
                     .addComponent(txtPopIns, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(popIns))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnDelete)
-                    .addComponent(ctrNameDel)
-                    .addComponent(txtCtrDel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(btnDelete)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(24, 24, 24))
@@ -469,9 +462,12 @@ public class MainWindow extends javax.swing.JFrame {
             
             //Das Standardmodell für Kombinationsfelder setzen
             cbxTables.setModel(new DefaultComboBoxModel<String>());
+            // Kombinationsfeld auf false setzen damit wir auf den keine Aktion fuehren. 
             cbxTables.setEnabled(false);
 
+            //Hier folgt die Erstellung von der Tabelle. 
             tblEntries.setModel(new DefaultTableModel());
+            
             tblEntries.setEnabled(false);
         } catch (SQLException ex) {
             System.out.println("Error closing database connection");
@@ -481,15 +477,26 @@ public class MainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnDisconnectActionPerformed
 
+    
+    //Unten folgt die Funktionalitaet des Kombinationsfeld. 
     private void cbxTablesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxTablesActionPerformed
-        int num_columns = 0;
         
+        
+        int num_columns = 0;
+ 
         try {
+            
+            /*Hier speichern wir die Columns in einem Resultset und benutzen unseren md Objekt die die Daten von Datenbank 
+             holt. */
             ResultSet result = md.getColumns(null, null, cbxTables.getSelectedItem().toString(), null);
 
-            //tblEntries.removeAll();
+            /*
+            DefaultTableModel ist eine Implementierung von TableModel,
+            die einen Vektor der Vektoren zum Speichern der Zellenwertobjekte verwendet.
+            */
             DefaultTableModel tableModel = new DefaultTableModel();
-
+            
+            //Schleife durch die Spalten zählen und Daten in die Tabelle speichern.
             while (result.next()) {
                 String columnName = result.getString(4);
 
@@ -507,7 +514,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         
         
-        
+        // Neue Statement erzeugen
         Statement stmt;
         try {
             stmt = con.createStatement();
@@ -562,26 +569,37 @@ public class MainWindow extends javax.swing.JFrame {
         
         
          
-        //Erstellung von Variablen in denen die User input für den Insert gespeichert wird. 
-        
+         
+        try{
         String countryName= txtCtrInsert.getText(); 
         String population= txtPopIns.getText(); 
         
         String insertBefehl = "INSERT INTO CITY (Name, population) VALUES("
-                + "countryName, population)" ;  
-            try { 
-                
-                PreparedStatement prpsmt = con.prepareStatement(insertBefehl) ;
-                
+                + "?,?)" ;  
+            
+                    
+        String user = txtUser.getText();
+        String password = txtPassword.getText();
+        String database = txtDatabase.getText();
+        String server = txtServer.getText();
+        int port = 0;
+      
+       con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+        
+        
+                pst = con.prepareStatement(insertBefehl) ;
+                pst.setString(1, countryName);
+                pst.setString(2, population);
                 // Anweisung zum Einfügen von SQL Prepared Statement
-                prpsmt.executeUpdate(); 
+                pst.executeUpdate(); 
+                JOptionPane.showMessageDialog(null, "Einfügen von Datensatz erfolgreich.");
                 
             } catch (SQLException ex) {
-                System.out.println("Fehler");
+                System.out.println("Fehler beim Einfügen von Datensätze");
             }
         
         
-        // h
+        
         
         
         
@@ -594,18 +612,39 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
         // Unten folgt die Funktionalitaet unserer Delete Button
-        try 
-        {  
-        Class.forName("com.mysql.jdbc.Driver");
         
+             btnDelete.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            
+            // i = the index of the selected row
+                
+            DefaultTableModel tableModel = new DefaultTableModel();
+            int i = tblEntries.getSelectedRow();
+            if (i >= 0) {
+            // remove a row from jtable
+            tableModel.removeRow(i);
+            } else {
+            System.out.println("There were issue while Deleting the Row(s).");
+            }
+            }
+            });
+      // Class.forName("com.mysql.jdbc.Driver");
+        
+        
+        /*
         String user = txtUser.getText();
         String password = txtPassword.getText();
         String database = txtDatabase.getText();
         String server = txtServer.getText();
         
+        
+        
+        
         String id = txtCtrDel.getText();
         int port = 0;
-        con = DriverManager.getConnection ("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
+        con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database, user, password);
 
         PreparedStatement st = con.prepareStatement("DELETE * FROM City WHERE name = id ");
         st.executeUpdate(); 
@@ -615,7 +654,7 @@ public class MainWindow extends javax.swing.JFrame {
             System.out.println(e);
         }
 
-        
+        */ 
         
     }//GEN-LAST:event_btnDeleteActionPerformed
 
@@ -668,7 +707,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JButton btnDisconnect;
     private javax.swing.JButton btnInsert;
     private javax.swing.JComboBox<String> cbxTables;
-    private javax.swing.JLabel ctrNameDel;
     private javax.swing.JLabel ctrNameIns;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
@@ -683,7 +721,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel lblUser;
     private javax.swing.JLabel popIns;
     private javax.swing.JTable tblEntries;
-    private javax.swing.JTextField txtCtrDel;
     private javax.swing.JTextField txtCtrInsert;
     private javax.swing.JTextField txtDatabase;
     private javax.swing.JPasswordField txtPassword;
